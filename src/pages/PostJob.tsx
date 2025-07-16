@@ -64,15 +64,15 @@ export default function PostJob() {
       category: selectedCategory as JobCategory,
       location: formData.get('location') as string,
       budget: parseFloat(formData.get('budget') as string),
-      duration: formData.get('duration') as string,
-      requirements: formData.get('requirements') as string,
-      contact_info: formData.get('contact_info') as string,
+      duration: formData.get('duration') as string || null,
+      requirements: formData.get('requirements') as string || null,
+      contact_info: formData.get('contact_info') as string || null,
     };
 
     try {
       const { data, error } = await supabase
         .from('jobs')
-        .insert(jobData)
+        .insert([jobData])
         .select()
         .single();
 
@@ -84,10 +84,10 @@ export default function PostJob() {
       });
 
       navigate(`/jobs/${data.id}`);
-    } catch (error) {
+    } catch (error: any) {
       toast({
         title: 'Error',
-        description: error instanceof Error ? error.message : 'Failed to post job',
+        description: error.message || 'Failed to post job',
         variant: 'destructive',
       });
     } finally {

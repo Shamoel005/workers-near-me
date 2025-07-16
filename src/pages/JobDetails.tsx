@@ -22,6 +22,10 @@ import {
   CheckCircle,
   XCircle
 } from 'lucide-react';
+import type { Database } from '@/integrations/supabase/types';
+
+type JobStatus = Database['public']['Enums']['job_status'];
+type ApplicationStatus = Database['public']['Enums']['application_status'];
 
 interface Job {
   id: string;
@@ -30,28 +34,29 @@ interface Job {
   category: string;
   location: string;
   budget: number;
-  duration: string;
-  requirements: string;
-  contact_info: string;
-  status: string;
+  duration: string | null;
+  requirements: string | null;
+  contact_info: string | null;
+  status: JobStatus;
   created_at: string;
   poster_id: string;
   profiles: {
-    full_name: string;
-    rating: number;
-    total_reviews: number;
-  };
+    full_name: string | null;
+    rating: number | null;
+    total_reviews: number | null;
+  } | null;
 }
 
 interface Application {
   id: string;
-  message: string;
-  proposed_rate: number;
-  status: string;
+  message: string | null;
+  proposed_rate: number | null;
+  status: ApplicationStatus;
   applied_at: string;
+  applicant_id: string;
   profiles: {
-    full_name: string;
-    rating: number;
+    full_name: string | null;
+    rating: number | null;
   };
 }
 
@@ -106,7 +111,7 @@ export default function JobDetails() {
   };
 
   const fetchUserApplication = async () => {
-    if (!user) return;
+    if (!user || !id) return;
 
     try {
       const { data, error } = await supabase
@@ -130,7 +135,7 @@ export default function JobDetails() {
   };
 
   const fetchApplications = async () => {
-    if (!user || !job || job.poster_id !== user.id) return;
+    if (!user || !job || job.poster_id !== user.id || !id) return;
 
     try {
       const { data, error } = await supabase
@@ -154,14 +159,14 @@ export default function JobDetails() {
 
   const handleApply = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user || !job) return;
+    if (!user || !job || !id) return;
 
     setApplying(true);
     try {
       const { error } = await supabase
         .from('applications')
         .insert([{
-          job_id: job.id,
+          job_id: id,
           applicant_id: user.id,
           message,
           proposed_rate: proposedRate ? parseFloat(proposedRate) : null,
@@ -188,7 +193,7 @@ export default function JobDetails() {
     }
   };
 
-  const handleApplicationStatus = async (applicationId: string, status: 'accepted' | 'rejected') => {
+  const handleApplicationStatus = async (applicationId: string, status: ApplicationStatus) => {
     try {
       const { error } = await supabase
         .from('applications')
@@ -474,13 +479,13 @@ export default function JobDetails() {
               <CardContent>
                 <div className="space-y-3">
                   <div>
-                    <h4 className="font-semibold">{job.profiles.full_name}</h4>
+                    <h4 className="font-semibold">{job.profiles?.full_name}</h4>
                   </div>
                   <div className="flex items-center space-x-1">
                     <Star className="h-4 w-4 text-yellow-400 fill-current" />
-                    <span className="font-medium">{job.profiles.rating || 'New'}</span>
+                    <span className="font-medium">{job.profiles?.rating || 'New'}</span>
                     <span className="text-gray-600">
-                      ({job.profiles.total_reviews || 0} reviews)
+                      ({job.profiles?.total_reviews || 0} reviews)
                     </span>
                   </div>
                 </div>

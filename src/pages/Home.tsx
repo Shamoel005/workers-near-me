@@ -21,28 +21,35 @@ import {
   Home as HomeIcon,
   GraduationCap
 } from 'lucide-react';
+import type { Database } from '@/integrations/supabase/types';
+
+type JobCategory = Database['public']['Enums']['job_category'];
 
 interface Job {
   id: string;
   title: string;
   description: string;
-  category: string;
+  category: JobCategory;
   location: string;
   budget: number;
-  duration: string;
+  duration: string | null;
   created_at: string;
   profiles: {
-    full_name: string;
-    rating: number;
-  };
+    full_name: string | null;
+    rating: number | null;
+  } | null;
 }
 
-const categoryIcons = {
+const categoryIcons: Record<JobCategory, any> = {
   construction: Hammer,
   delivery: Truck,
   cleaning: HomeIcon,
   tutoring: GraduationCap,
   handyman: Hammer,
+  gardening: Users,
+  moving: Truck,
+  pet_care: Users,
+  event_help: Users,
   other: Briefcase
 };
 
@@ -200,7 +207,7 @@ export default function Home() {
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {jobs.map((job) => {
-              const IconComponent = categoryIcons[job.category as keyof typeof categoryIcons] || Briefcase;
+              const IconComponent = categoryIcons[job.category] || Briefcase;
               return (
                 <Card key={job.id} className="hover:shadow-lg transition-shadow">
                   <CardHeader>
