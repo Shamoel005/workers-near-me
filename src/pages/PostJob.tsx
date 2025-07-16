@@ -11,8 +11,11 @@ import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { Plus } from 'lucide-react';
+import type { Database } from '@/integrations/supabase/types';
 
-const categories = [
+type JobCategory = Database['public']['Enums']['job_category'];
+
+const categories: { value: JobCategory; label: string }[] = [
   { value: 'construction', label: 'Construction' },
   { value: 'delivery', label: 'Delivery' },
   { value: 'cleaning', label: 'Cleaning' },
@@ -29,6 +32,7 @@ export default function PostJob() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState<JobCategory | ''>('');
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -41,6 +45,15 @@ export default function PostJob() {
       return;
     }
 
+    if (!selectedCategory) {
+      toast({
+        title: 'Error',
+        description: 'Please select a category',
+        variant: 'destructive',
+      });
+      return;
+    }
+
     setLoading(true);
     
     const formData = new FormData(e.currentTarget);
@@ -48,7 +61,7 @@ export default function PostJob() {
       poster_id: user.id,
       title: formData.get('title') as string,
       description: formData.get('description') as string,
-      category: formData.get('category') as string,
+      category: selectedCategory as JobCategory,
       location: formData.get('location') as string,
       budget: parseFloat(formData.get('budget') as string),
       duration: formData.get('duration') as string,
@@ -59,7 +72,7 @@ export default function PostJob() {
     try {
       const { data, error } = await supabase
         .from('jobs')
-        .insert([jobData])
+        .insert(jobData)
         .select()
         .single();
 
@@ -71,10 +84,10 @@ export default function PostJob() {
       });
 
       navigate(`/jobs/${data.id}`);
-    } catch (error: any) {
+    } catch (error) {
       toast({
         title: 'Error',
-        description: error.message || 'Failed to post job',
+        description: error instanceof Error ? error.message : 'Failed to post job',
         variant: 'destructive',
       });
     } finally {
@@ -139,7 +152,7 @@ export default function PostJob() {
 
                 <div>
                   <Label htmlFor="category">Category *</Label>
-                  <Select name="category" required>
+                  <Select value={selectedCategory} onValueChange={(value: JobCategory) => setSelectedCategory(value)} required>
                     <SelectTrigger className="mt-1">
                       <SelectValue placeholder="Select a category" />
                     </SelectTrigger>

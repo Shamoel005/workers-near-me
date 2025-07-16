@@ -65,7 +65,9 @@ const categories = [
   'pet_care',
   'event_help',
   'other'
-];
+] as const;
+
+type CategoryType = typeof categories[number];
 
 export default function BrowseJobs() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -97,7 +99,7 @@ export default function BrowseJobs() {
         query = query.or(`title.ilike.%${searchTerm}%,description.ilike.%${searchTerm}%,location.ilike.%${searchTerm}%`);
       }
 
-      if (selectedCategory) {
+      if (selectedCategory && categories.includes(selectedCategory as CategoryType)) {
         query = query.eq('category', selectedCategory);
       }
 
