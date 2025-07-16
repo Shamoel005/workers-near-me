@@ -70,6 +70,11 @@ const categories: JobCategory[] = [
   'other'
 ];
 
+// Helper function to check if a string is a valid JobCategory
+const isValidJobCategory = (category: string): category is JobCategory => {
+  return categories.includes(category as JobCategory);
+};
+
 export default function BrowseJobs() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [jobs, setJobs] = useState<Job[]>([]);
@@ -100,7 +105,7 @@ export default function BrowseJobs() {
         query = query.or(`title.ilike.%${searchTerm}%,description.ilike.%${searchTerm}%,location.ilike.%${searchTerm}%`);
       }
 
-      if (selectedCategory && categories.includes(selectedCategory as JobCategory)) {
+      if (selectedCategory && isValidJobCategory(selectedCategory)) {
         query = query.eq('category', selectedCategory);
       }
 
