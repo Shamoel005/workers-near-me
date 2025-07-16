@@ -25,12 +25,15 @@ import {
   Baby,
   Calendar
 } from 'lucide-react';
+import type { Database } from '@/integrations/supabase/types';
+
+type JobCategory = Database['public']['Enums']['job_category'];
 
 interface Job {
   id: string;
   title: string;
   description: string;
-  category: string;
+  category: JobCategory;
   location: string;
   budget: number;
   duration: string;
@@ -54,7 +57,7 @@ const categoryIcons = {
   other: Briefcase
 };
 
-const categories = [
+const categories: JobCategory[] = [
   'construction',
   'delivery',
   'cleaning',
@@ -65,9 +68,7 @@ const categories = [
   'pet_care',
   'event_help',
   'other'
-] as const;
-
-type CategoryType = typeof categories[number];
+];
 
 export default function BrowseJobs() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -99,7 +100,7 @@ export default function BrowseJobs() {
         query = query.or(`title.ilike.%${searchTerm}%,description.ilike.%${searchTerm}%,location.ilike.%${searchTerm}%`);
       }
 
-      if (selectedCategory && categories.includes(selectedCategory as CategoryType)) {
+      if (selectedCategory && categories.includes(selectedCategory as JobCategory)) {
         query = query.eq('category', selectedCategory);
       }
 
@@ -221,7 +222,7 @@ export default function BrowseJobs() {
             
             <div className="grid gap-6">
               {jobs.map((job) => {
-                const IconComponent = categoryIcons[job.category as keyof typeof categoryIcons] || Briefcase;
+                const IconComponent = categoryIcons[job.category] || Briefcase;
                 return (
                   <Card key={job.id} className="hover:shadow-lg transition-shadow">
                     <CardHeader>
